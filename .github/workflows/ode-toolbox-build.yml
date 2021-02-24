@@ -39,10 +39,10 @@ jobs:
       - name: Install ode-toolbox
         run: |
           python -m pip install -r requirements.txt
+          python -m pip install cython
           if [ ${{ env.WITH_GSL }} == 1 ]; then
           python -m pip install pygsl ;
           fi
-          python -m pip install cython
           python -m pip install codecov pytest-cov pycodestyle
           PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, [sys.version_info.major, sys.version_info.minor])))"`
           echo "Python version detected: $PYTHON_VERSION"
