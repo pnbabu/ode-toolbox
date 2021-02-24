@@ -1,0 +1,60 @@
+name: ODE-toolbox build
+on: [push, pull_request]
+env:
+  WITH_GSL: 1
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6]
+
+    steps:
+      - name: Checkout ode-toolbox code
+        uses: actions/checkout@v2
+
+      - name: Setup Python 3.6
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Static code analysis
+        run: |
+          python3 -m pycodestyle $GITHUB_WORKSPACE -v --ignore=E241,E501,E303,E714,E713,E714,E252 --exclude=$GITHUB_WORKSPACE/doc,$GITHUB_WORKSPACE/.eggs,$GITHUB_WORKSPACE/build,$GITHUB_WORKSPACE/.git,$GITHUB_WORKSPACE/odetoolbox.egg-info,$GITHUB_WORKSPACE/dist
+
+      - name: Install GSL
+        run: |
+          if [ ${{ env.WITH_GSL }} == 1]; then
+          wget http://ftp.wrz.de/pub/gnu/gsl/gsl-2.5.tar.gz ;
+          tar -xvzf gsl-2.5.tar.gz ;
+          cd gsl-2.5 ;
+          ./configure && make && sudo make install ;
+          cd .. ;
+          fi
+          echo "LD_LIBRARY_PATH=/usr/local/lib" >> $GITHUB_ENV
+
+      - name: Install ode-toolbox
+        run: |
+          if [ ${{ env.WITH_GSL }} == 1]; then
+          python -m pip install pygsl ;
+          fi
+          python -m pip install -r requirements.txt
+          python -m pip install cython
+          python -m pip install codecov pytest-cov pycodestyle
+          PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, [sys.version_info.major, sys.version_info.minor])))"`
+          echo "Python version detected: $PYTHON_VERSION"
+          if [ $PYTHON_VERSION == "3.5" ]; then
+          python -m pip uninstall --yes sympy ;
+          python -m pip install sympy==1.4 ;
+          fi
+          SYMPY_VERSION=`python -c "import sympy; print(sympy.__version__)"`
+          echo "Using sympy version: $SYMPY_VERSION"
+          python setup.py install
+
+      - name: Run tests
+        run: |
+          python -m pytest -s -o log_cli=true -o log_cli_level="DEBUG" --cov=./ tests
+
+      - name: Code coverage
+        run: |
+          codecov
