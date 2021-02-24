@@ -1,14 +1,16 @@
 name: ODE-toolbox build
 on: [push, pull_request]
-env:
-  WITH_GSL: 1
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.5, 3.6]
+        python-version: [3.5, 3.8]
+        gsl-version: [0, 1]
 
+    env:
+      WITH_GSL: ${{ matrix.gsl-version }}
     steps:
       - name: Checkout ode-toolbox code
         uses: actions/checkout@v2
