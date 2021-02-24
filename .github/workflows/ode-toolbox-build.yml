@@ -13,14 +13,15 @@ jobs:
       - name: Checkout ode-toolbox code
         uses: actions/checkout@v2
 
-      - name: Setup Python 3.6
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Static code analysis
         run: |
-          python3 -m pycodestyle $GITHUB_WORKSPACE -v --ignore=E241,E501,E303,E714,E713,E714,E252 --exclude=$GITHUB_WORKSPACE/doc,$GITHUB_WORKSPACE/.eggs,$GITHUB_WORKSPACE/build,$GITHUB_WORKSPACE/.git,$GITHUB_WORKSPACE/odetoolbox.egg-info,$GITHUB_WORKSPACE/dist
+          python -m pip install pycodestyle
+          python -m pycodestyle $GITHUB_WORKSPACE -v --ignore=E241,E501,E303,E714,E713,E714,E252 --exclude=$GITHUB_WORKSPACE/doc,$GITHUB_WORKSPACE/.eggs,$GITHUB_WORKSPACE/build,$GITHUB_WORKSPACE/.git,$GITHUB_WORKSPACE/odetoolbox.egg-info,$GITHUB_WORKSPACE/dist
 
       - name: Install GSL
         run: |
